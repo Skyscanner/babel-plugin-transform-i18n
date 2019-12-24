@@ -15,6 +15,28 @@ test('Should not have side effects', () => {
     expect(code).toBe(expected);
 });
 
+test('Should replace with empty string when an empty string is provided as translation', () => {
+    const source = `t('key_hello', { name: 'Rob' });`;
+
+    const expected = `"";`;
+
+    const { code } = transformSync(source, {
+        babelrc: false,
+        plugins: [
+            [
+                i18nPlugin,
+                {
+                    dictionary: {
+                        key_hello: '',
+                    },
+                },
+            ],
+        ],
+    });
+
+    expect(code).toBe(expected);
+});
+
 test('Should replace the token', () => {
     const source = `t('key_hello', { name: 'Rob' });`;
 

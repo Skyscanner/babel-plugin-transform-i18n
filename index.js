@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 module.exports = function i18nPlugin({ types: t }) {
     function getNodeForValue(
         value,
@@ -39,10 +40,20 @@ module.exports = function i18nPlugin({ types: t }) {
                         return;
                     }
 
-                    let string = firstArgument.extra.rawValue;
+                    const key = firstArgument.extra.rawValue;
 
-                    if (dictionary[string]) {
-                        string = dictionary[string];
+                    if (dictionary[key] === '') {
+                        console.warn(`Found empty string for key: ${key}`);
+                        path.replaceWith(t.stringLiteral(''));
+                        return;
+                    }
+
+                    if (!dictionary[key]) {
+                        console.warn(
+                            `Found invalid value for key: ${key} => ${dictionary[key]}`,
+                        );
+                        path.replaceWith(t.stringLiteral(key));
+                        return;
                     }
 
                     if (
@@ -57,7 +68,7 @@ module.exports = function i18nPlugin({ types: t }) {
                             {},
                         );
 
-                        const replacementNode = string
+                        const replacementNode = dictionary[key]
                             .split(pattern)
                             .filter(component => component !== '')
                             .reduce((previous, current, i) => {
@@ -107,11 +118,33 @@ module.exports = function i18nPlugin({ types: t }) {
                                 );
                             });
 
-                        path.replaceWith(replacementNode);
+                        try {
+                            path.replaceWith(replacementNode);
+                        } catch (replaceWithError) {
+                            console.warn(
+                                'replaceWith',
+                                replacementNode,
+                                replaceWithError,
+                            );
+
+                            try {
+                                path.replaceWithSourceString(replacementNode);
+                            } catch (replaceWithSourceStringError) {
+                                console.warn(
+                                    'replaceWithSourceString',
+                                    replacementNode,
+                                    replaceWithSourceStringError,
+                                );
+                            }
+                        }
                         return;
                     }
 
-                    path.replaceWith(t.stringLiteral(string));
+                    try {
+                        path.replaceWith(t.stringLiteral(dictionary[key]));
+                    } catch (err) {
+                        console.warn(dictionary[key], err);
+                    }
                 }
             },
         },
