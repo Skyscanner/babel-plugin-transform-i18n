@@ -1,32 +1,50 @@
 {
-  "name": "@vimeo/babel-plugin-transform-i18n",
-  "version": "1.0.1",
+  "name": "babel-plugin-skyscanner-i18n",
+  "version": "0.0.1",
   "description": "A Babel transform plugin to replace strings with their translations.",
   "license": "MIT",
-  "author": "Brad Dougherty <brad@vimeo.com>",
-  "contributors": [
-    "Brad Dougherty <brad@vimeo.com> (https://brad.is)"
-  ],
+  "author": "Paolo Chiabrera <paolo.chiabrera@skyscanner.net>",
   "main": "index.js",
-  "repository": "vimeo/babel-plugin-transform-i18n",
-  "bugs": "https://github.com/vimeo/babel-plugin-transform-i18n/issues",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:Skyscanner/babel-plugin-skyscanner-i18n.git"
+  },
+  "engines": {
+    "node": "^12.10.0",
+    "npm": "^6.10.3"
+  },
   "keywords": [
     "babel",
     "babel-plugin",
     "i18n"
   ],
   "scripts": {
-    "lint": "eslint index.js test.js",
+    "lint": "eslint *.js",
+    "preinstall": "npm_config_registry=https://registry.npmjs.org/ npx ensure-node-env",
     "pretest": "npm run lint",
-    "test": "nyc --cache --reporter=text --reporter=html ava",
-    "report-coverage": "nyc report --reporter=text-lcov > coverage.lcov && codecov"
+    "publish": "npm_config_registry=https://registry.npmjs.org/ npx np",
+    "test": "jest"
   },
   "devDependencies": {
-    "@vimeo/eslint-config-player": "^4.0.1",
-    "ava": "^0.16.0",
-    "babel-core": "^6.13.2",
-    "codecov": "^1.0.1",
-    "eslint": "^3.2.2",
-    "nyc": "^7.1.0"
+    "@babel/core": "^7.7.7",
+    "babel-eslint": "^10.0.3",
+    "babel-jest": "^24.9.0",
+    "eslint": "^5.16.0",
+    "eslint-config-airbnb": "^17.1.1",
+    "eslint-config-skyscanner": "^4.1.0",
+    "eslint-config-skyscanner-with-prettier": "^0.8.0",
+    "eslint-plugin-backpack": "^0.2.3",
+    "eslint-plugin-es": "^2.0.0",
+    "eslint-plugin-import": "^2.19.1",
+    "eslint-plugin-jsx-a11y": "^6.2.3",
+    "eslint-plugin-no-only-tests": "^2.4.0",
+    "husky": "^3.1.0",
+    "jest": "^24.9.0"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm test",
+      "pre-push": "npm test"
+    }
   }
 }

@@ -1,6 +1,14 @@
-module.exports = function({ types: t }) {
-    function getNodeForValue(value, tokens) {
-        if (value.match(/^\{.*?\}$/) && tokens[value]) {
+module.exports = function i18nPlugin({ types: t }) {
+    function getNodeForValue(
+        value,
+        tokens,
+        leftDelimiter = '{',
+        rightDelimiter = '}',
+    ) {
+        if (
+            value.match(new RegExp(`^${leftDelimiter}.*?${rightDelimiter}$`)) &&
+            tokens[value]
+        ) {
             return tokens[value];
         }
 
@@ -10,10 +18,22 @@ module.exports = function({ types: t }) {
     return {
         visitor: {
             CallExpression(path, state) {
+                const { delimiter } = state.opts;
+                const leftDelimiter =
+                    delimiter || state.opts.leftDelimiter || '{';
+                const rightDelimiter =
+                    delimiter || state.opts.rightDelimiter || '}';
+                const pattern = new RegExp(
+                    `(${leftDelimiter}.*?${rightDelimiter})`,
+                    'g',
+                );
                 const translationFunctionName = state.opts.functionName || 't';
                 const dictionary = state.opts.dictionary || {};
 
-                if (t.isIdentifier(path.node.callee) && path.node.callee.name === translationFunctionName) {
+                if (
+                    t.isIdentifier(path.node.callee) &&
+                    path.node.callee.name === translationFunctionName
+                ) {
                     const firstArgument = path.node.arguments[0];
                     if (!firstArgument || !firstArgument.extra) {
                         return;
@@ -25,37 +45,67 @@ module.exports = function({ types: t }) {
                         string = dictionary[string];
                     }
 
-                    if (path.node.arguments.length > 1 && t.isObjectExpression(path.node.arguments[1])) {
-                        const tokens = path.node.arguments[1].properties.reduce((previous, current) => {
-                            previous[`{${current.key.name}}`] = current.value;
-                            return previous;
-                        }, {});
+                    if (
+                        path.node.arguments.length > 1 &&
+                        t.isObjectExpression(path.node.arguments[1])
+                    ) {
+                        const tokens = path.node.arguments[1].properties.reduce(
+                            (previous, current) => ({
+                                ...previous,
+                                [`${leftDelimiter}${current.key.name}${rightDelimiter}`]: current.value,
+                            }),
+                            {},
+                        );
 
-                        const replacementNode = string.split(/(\{.*?\})/g).filter((component) => {
-                            return component !== '';
-                        }).reduce((previous, current, i) => {
-                            if (i === 1) {
-                                previous = getNodeForValue(previous, tokens);
-                            }
+                        const replacementNode = string
+                            .split(pattern)
+                            .filter(component => component !== '')
+                            .reduce((previous, current, i) => {
+                                let previousNode = previous;
 
-                            const currentNode = getNodeForValue(current, tokens);
-
-                            if (t.isStringLiteral(currentNode)) {
-                                // If the previous node is a StringLiteral, return a combined StringLiteral
-                                if (t.isStringLiteral(previous)) {
-                                    return t.stringLiteral(`${previous.value}${currentNode.value}`);
+                                if (i === 1) {
+                                    previousNode = getNodeForValue(
+                                        previous,
+                                        tokens,
+                                        leftDelimiter,
+                                        rightDelimiter,
+                                    );
                                 }
 
-                                // If the previous node is a BinaryExpression with a StringLiteral on the right side,
-                                // update the BinaryExpression to have a combined StringLiteral on the right
-                                if (t.isBinaryExpression(previous) && t.isStringLiteral(previous.right)) {
-                                    previous.right = t.stringLiteral(`${previous.right.value}${currentNode.value}`);
-                                    return previous;
-                                }
-                            }
+                                const currentNode = getNodeForValue(
+                                    current,
+                                    tokens,
+                                    leftDelimiter,
+                                    rightDelimiter,
+                                );
 
-                            return t.binaryExpression('+', previous, currentNode);
-                        });
+                                if (t.isStringLiteral(currentNode)) {
+                                    // If the previous node is a StringLiteral, return a combined StringLiteral
+                                    if (t.isStringLiteral(previousNode)) {
+                                        return t.stringLiteral(
+                                            `${previousNode.value}${currentNode.value}`,
+                                        );
+                                    }
+
+                                    // If the previous node is a BinaryExpression with a StringLiteral on the right side,
+                                    // update the BinaryExpression to have a combined StringLiteral on the right
+                                    if (
+                                        t.isBinaryExpression(previousNode) &&
+                                        t.isStringLiteral(previous.right)
+                                    ) {
+                                        previousNode.right = t.stringLiteral(
+                                            `${previousNode.right.value}${currentNode.value}`,
+                                        );
+                                        return previousNode;
+                                    }
+                                }
+
+                                return t.binaryExpression(
+                                    '+',
+                                    previousNode,
+                                    currentNode,
+                                );
+                            });
 
                         path.replaceWith(replacementNode);
                         return;
@@ -63,7 +113,7 @@ module.exports = function({ types: t }) {
 
                     path.replaceWith(t.stringLiteral(string));
                 }
-            }
-        }
+            },
+        },
     };
 };

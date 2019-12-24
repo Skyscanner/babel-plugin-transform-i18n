@@ -1,5 +1,3 @@
-# babel-plugin-transform-i18n [![Build Status](https://travis-ci.org/vimeo/babel-plugin-transform-i18n.svg?branch=master)](https://travis-ci.org/vimeo/babel-plugin-transform-i18n) [![Coverage](https://img.shields.io/codecov/c/github/vimeo/babel-plugin-transform-i18n.svg?maxAge=2592000)](https://codecov.io/gh/vimeo/babel-plugin-transform-i18n) [![npm](https://img.shields.io/npm/v/@vimeo/babel-plugin-transform-i18n.svg?maxAge=2592000)](https://www.npmjs.com/package/@vimeo/babel-plugin-transform-i18n) [![Gitter](https://badges.gitter.im/vimeo/babel-plugin-transform-i18n.svg)](https://gitter.im/vimeo/babel-plugin-transform-i18n)
-
 A [Babel](https://babeljs.io) transform plugin to replace strings with their translations.
 
 ## Example
@@ -9,7 +7,7 @@ A [Babel](https://babeljs.io) transform plugin to replace strings with their tra
 ```json
 {
     "plugins": [
-        ["transform-i18n", {
+        ["skyscanner-i18n", {
             "dictionary": {
                 "Hello": "Bonjour",
                 "Hello, {name}!": "Bonjour, {name}!"
@@ -40,7 +38,7 @@ const helloWithName = 'Bonjour, ' + name + '!';
 ## Installation
 
 ```bash
-npm install babel-plugin-transform-i18n
+npm i -D babel-plugin-skyscanner-i18n
 ```
 
 ## Usage
@@ -50,7 +48,7 @@ npm install babel-plugin-transform-i18n
 ```json
 {
     "plugins": [
-        ["transform-i18n", {
+        ["skyscanner-i18n", {
             "functionName": "t",
             "dictionary": {}
         }]
@@ -63,7 +61,7 @@ npm install babel-plugin-transform-i18n
 ```js
 require('babel-core').transform('code', {
     plugins: [
-        ['transform-i18n', {
+        ['skyscanner-i18n', {
             functionName: 't',
             dictionary: {}
         }]
@@ -82,3 +80,11 @@ A mapping of the strings passed to the translation function to their translated 
 ### `functionName`
 
 The name of the function that wraps the strings. Defaults to `t`.
+
+### `leftDelimiter`, `rightDelimiter`
+
+The delimiter to be used for templating. Defaults to `{` `}`.
+
+### `delimiter`
+
+Shorthand for when both `leftDelimiter` and `rightDelimiter` are the same. Example: `@@`
