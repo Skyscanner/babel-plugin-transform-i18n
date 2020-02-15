@@ -1,6 +1,6 @@
 {
   "name": "babel-plugin-skyscanner-i18n",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "A Babel transform plugin to replace strings with their translations.",
   "license": "MIT",
   "author": "Paolo Chiabrera <paolo.chiabrera@skyscanner.net>",
