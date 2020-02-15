@@ -19,7 +19,7 @@ module.exports = function i18nPlugin({ types: t }) {
     return {
         visitor: {
             CallExpression(path, state) {
-                const { delimiter } = state.opts;
+                const { debug, delimiter } = state.opts;
                 const leftDelimiter =
                     delimiter || state.opts.leftDelimiter || '{';
                 const rightDelimiter =
@@ -43,15 +43,19 @@ module.exports = function i18nPlugin({ types: t }) {
                     const key = firstArgument.extra.rawValue;
 
                     if (dictionary[key] === '') {
-                        console.warn(`Found empty string for key: ${key}`);
+                        if (debug) {
+                            console.warn(`Found empty string for key: ${key}`);
+                        }
                         path.replaceWith(t.stringLiteral(''));
                         return;
                     }
 
                     if (!dictionary[key]) {
-                        console.warn(
-                            `Found invalid value for key: ${key} => ${dictionary[key]}`,
-                        );
+                        if (debug) {
+                            console.warn(
+                                `Found invalid value for key: ${key} => ${dictionary[key]}`,
+                            );
+                        }
                         path.replaceWith(t.stringLiteral(key));
                         return;
                     }
@@ -121,20 +125,24 @@ module.exports = function i18nPlugin({ types: t }) {
                         try {
                             path.replaceWith(replacementNode);
                         } catch (replaceWithError) {
-                            console.warn(
-                                'replaceWith',
-                                replacementNode,
-                                replaceWithError,
-                            );
+                            if (debug) {
+                                console.warn(
+                                    'replaceWith',
+                                    replacementNode,
+                                    replaceWithError,
+                                );
+                            }
 
                             try {
                                 path.replaceWithSourceString(replacementNode);
                             } catch (replaceWithSourceStringError) {
-                                console.warn(
-                                    'replaceWithSourceString',
-                                    replacementNode,
-                                    replaceWithSourceStringError,
-                                );
+                                if (debug) {
+                                    console.warn(
+                                        'replaceWithSourceString',
+                                        replacementNode,
+                                        replaceWithSourceStringError,
+                                    );
+                                }
                             }
                         }
                         return;
@@ -143,7 +151,9 @@ module.exports = function i18nPlugin({ types: t }) {
                     try {
                         path.replaceWith(t.stringLiteral(dictionary[key]));
                     } catch (err) {
-                        console.warn(dictionary[key], err);
+                        if (debug) {
+                            console.warn(dictionary[key], err);
+                        }
                     }
                 }
             },

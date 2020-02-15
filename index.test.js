@@ -1,5 +1,9 @@
 const { transformSync } = require('@babel/core');
 
+const consoleWarnSpy = jest
+    .spyOn(global.console, 'warn')
+    .mockImplementation(() => {});
+
 const i18nPlugin = require('./index');
 
 test('Should not have side effects', () => {
@@ -15,7 +19,7 @@ test('Should not have side effects', () => {
     expect(code).toBe(expected);
 });
 
-test('Should replace with empty string when an empty string is provided as translation', () => {
+test('Should replace with empty string when an empty string is provided as translation and not log by default', () => {
     const source = `t('key_hello', { name: 'Rob' });`;
 
     const expected = `"";`;
@@ -35,6 +39,31 @@ test('Should replace with empty string when an empty string is provided as trans
     });
 
     expect(code).toBe(expected);
+    expect(consoleWarnSpy).not.toBeCalled();
+});
+
+test('Should replace with empty string when an empty string is provided as translation and log when debug is true', () => {
+    const source = `t('key_hello', { name: 'Rob' });`;
+
+    const expected = `"";`;
+
+    const { code } = transformSync(source, {
+        babelrc: false,
+        plugins: [
+            [
+                i18nPlugin,
+                {
+                    debug: true,
+                    dictionary: {
+                        key_hello: '',
+                    },
+                },
+            ],
+        ],
+    });
+
+    expect(code).toBe(expected);
+    expect(consoleWarnSpy).toBeCalled();
 });
 
 test('Should replace the token', () => {
